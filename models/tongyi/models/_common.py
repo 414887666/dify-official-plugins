@@ -24,16 +24,57 @@ INTL_HTTP_BASE_ADDRESS = "https://dashscope-intl.aliyuncs.com/api/v1"
 INTL_WS_BASE_ADDRESS = "wss://dashscope-intl.aliyuncs.com/api-ws/v1/inference"
 
 
+def _clean_url(url: str | None) -> str:
+    return str(url or "").strip().rstrip("/")
+
+
+def _normalize_dashscope_endpoint_url(url: str | None, field_name: str) -> str:
+    normalized = _clean_url(url)
+    if not normalized:
+        raise ValueError(f"{field_name} is required")
+
+    if not normalized.startswith(("http://", "https://", "ws://", "wss://")):
+        raise ValueError(f"{field_name} must start with http://, https://, ws://, or wss://")
+    return normalized
+
+
+def _normalize_http_url(url: str | None, field_name: str) -> str:
+    normalized = _clean_url(url)
+    if not normalized:
+        raise ValueError(f"{field_name} is required")
+
+    if not normalized.startswith(("http://", "https://")):
+        raise ValueError(f"{field_name} must start with http:// or https://")
+    return normalized
+
+
+def get_dashscope_base_address(credentials: Mapping[str, str]) -> str:
+    return _normalize_dashscope_endpoint_url(
+        credentials.get("dashscope_endpoint_url", ""),
+        "dashscope_endpoint_url",
+    )
+
+
+def get_compatible_base_url(credentials: Mapping[str, str]) -> str:
+    compatible_endpoint_url = _clean_url(credentials.get("compatible_endpoint_url"))
+    if compatible_endpoint_url:
+        return _normalize_http_url(compatible_endpoint_url, "compatible_endpoint_url")
+    return _normalize_http_url(credentials.get("dashscope_endpoint_url"), "dashscope_endpoint_url")
+
+
+def get_compatible_api_key(credentials: Mapping[str, str]) -> str:
+    compatible_api_key = str(credentials.get("compatible_api_key") or "").strip()
+    if compatible_api_key:
+        return compatible_api_key
+    return credentials["dashscope_api_key"]
+
+
 def get_http_base_address(credentials: Mapping[str, str]) -> str:
-    if credentials.get("use_international_endpoint", "false") == "true":
-        return INTL_HTTP_BASE_ADDRESS
-    return DEFAULT_HTTP_BASE_ADDRESS
+    return get_dashscope_base_address(credentials)
 
 
 def get_ws_base_address(credentials: Mapping[str, str]) -> str:
-    if credentials.get("use_international_endpoint", "false") == "true":
-        return INTL_WS_BASE_ADDRESS
-    return DEFAULT_WS_BASE_ADDRESS
+    return get_dashscope_base_address(credentials)
 
 
 class _CommonTongyi:

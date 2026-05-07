@@ -52,6 +52,9 @@ def test_llm_invoke(model_name: str) -> None:
     api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         raise ValueError("DASHSCOPE_API_KEY environment variable is required")
+    endpoint_url = os.getenv("DASHSCOPE_ENDPOINT_URL")
+    if not endpoint_url:
+        raise ValueError("DASHSCOPE_ENDPOINT_URL environment variable is required")
 
     plugin_path = os.getenv("PLUGIN_FILE_PATH")
     if not plugin_path:
@@ -62,7 +65,10 @@ def test_llm_invoke(model_name: str) -> None:
         provider="tongyi",
         model_type=ModelType.LLM,
         model=model_name,
-        credentials={"dashscope_api_key": api_key},
+        credentials={
+            "dashscope_api_key": api_key,
+            "dashscope_endpoint_url": endpoint_url,
+        },
         prompt_messages=[{"role": "user", "content": "Say hello in one word."}],
         model_parameters={"max_tokens": 100},
         stop=None,

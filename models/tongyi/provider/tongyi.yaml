@@ -28,13 +28,40 @@ label:
 model_credential_schema:
   credential_form_schemas:
   - label:
-      en_US: API Key
+      en_US: Dashscope API Key
     placeholder:
-      en_US: Enter your API Key
-      zh_Hans: 在此输入您的 API Key
+      en_US: Enter your Dashscope API Key
+      zh_Hans: 在此输入您的 Dashscope API Key
     required: true
     type: secret-input
     variable: dashscope_api_key
+  - label:
+      en_US: DashScope Endpoint URL
+      zh_Hans: DashScope Endpoint URL
+    placeholder:
+      en_US: Enter your AI gateway DashScope endpoint URL
+      zh_Hans: 输入您的 AI 网关 DashScope endpoint URL
+    required: true
+    type: text-input
+    variable: dashscope_endpoint_url
+  - label:
+      en_US: Compatible API Key
+      zh_Hans: Compatible API Key
+    placeholder:
+      en_US: Optional. Defaults to API Key when empty
+      zh_Hans: 可选。留空时默认使用 API Key
+    required: false
+    type: secret-input
+    variable: compatible_api_key
+  - label:
+      en_US: Compatible Endpoint URL
+      zh_Hans: Compatible Endpoint URL
+    placeholder:
+      en_US: Optional. Defaults to DashScope Endpoint URL when empty
+      zh_Hans: 可选。留空时默认使用 DashScope Endpoint URL
+    required: false
+    type: text-input
+    variable: compatible_endpoint_url
   - default: '4096'
     label:
       en_US: Model context size
@@ -101,18 +128,45 @@ provider: tongyi
 provider_credential_schema:
   credential_form_schemas:
   - label:
-      en_US: API Key
+      en_US: Dashscope API Key
     placeholder:
-      en_US: Enter your API Key
-      zh_Hans: 在此输入您的 API Key
+      en_US: Enter your Dashscope API Key
+      zh_Hans: 在此输入您的 Dashscope API Key
     required: true
     type: secret-input
     variable: dashscope_api_key
   - label:
-      en_US: Use International Endpoint
-      zh_Hans: 使用国际端点
-    type: radio
+      en_US: DashScope Endpoint URL
+      zh_Hans: DashScope Endpoint URL
+    placeholder:
+      en_US: Enter your AI gateway DashScope endpoint URL
+      zh_Hans: 输入您的 AI 网关 DashScope endpoint URL
     required: true
+    type: text-input
+    variable: dashscope_endpoint_url
+  - label:
+      en_US: Compatible API Key
+      zh_Hans: Compatible API Key
+    placeholder:
+      en_US: Optional. Defaults to API Key when empty
+      zh_Hans: 可选，留空时默认使用 API Key
+    required: false
+    type: secret-input
+    variable: compatible_api_key
+  - label:
+      en_US: Compatible Endpoint URL
+      zh_Hans: Compatible Endpoint URL
+    placeholder:
+      en_US: Optional. Defaults to DashScope Endpoint URL when empty
+      zh_Hans: 可选，留空时默认使用 DashScope Endpoint URL
+    required: false
+    type: text-input
+    variable: compatible_endpoint_url
+  - label:
+      en_US: Use International Endpoint for Speech-to-Text
+      zh_Hans: Speech-to-Text 使用国际端点
+    type: radio
+    required: false
     default: "false"
     variable: use_international_endpoint
     options:

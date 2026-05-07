@@ -62,7 +62,11 @@ from dify_plugin.errors.model import (
 )
 from dify_plugin.interfaces.model.large_language_model import LargeLanguageModel
 from openai import OpenAI
-from models._common import get_http_base_address
+from models._common import (
+    get_compatible_api_key,
+    get_compatible_base_url,
+    get_dashscope_base_address,
+)
 from ..constant import BURY_POINT_HEADER
 
 logger = logging.getLogger(__name__)
@@ -287,7 +291,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         if common_force_condition or model.startswith(("qwq-", "qvq-")):
             incremental_output = True
 
-        base_address = get_http_base_address(credentials)
+        base_address = get_dashscope_base_address(credentials)
 
         # The parameter `enable_omni_output_audio_url` must be set to true when using the Omni model in non-streaming mode.
         if model.startswith("qwen3-omni-") and not stream:
@@ -737,14 +741,9 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         :return: file ID in Tongyi
         """
         client = OpenAI(
-            api_key=credentials["dashscope_api_key"],
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            api_key=get_compatible_api_key(credentials),
+            base_url=get_compatible_base_url(credentials),
         )
-        if credentials.get("use_international_endpoint", "false") == "true":
-            client = OpenAI(
-                api_key=credentials["dashscope_api_key"],
-                base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-            )
         temp_file_path = None
         try:
             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
