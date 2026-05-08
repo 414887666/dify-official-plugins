@@ -7,14 +7,14 @@ meta:
     language: python
     version: "3.12"
   version: 0.0.2
-name: tongyi
+name: ey_tongyi
 author: langgenius
 label:
-  en_US: Tongyi
-  zh_Hans: 通义
+  en_US: EY_Tongyi
+  zh_Hans: EY_通义
 description:
-  en_US: Tongyi
-  zh_Hans: 通义
+  en_US: EY_Tongyi
+  zh_Hans: EY_通义
 icon: icon_s_en.png
 plugins:
   models:
