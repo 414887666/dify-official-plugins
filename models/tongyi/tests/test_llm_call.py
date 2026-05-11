@@ -62,7 +62,7 @@ def test_llm_invoke(model_name: str) -> None:
 
     payload = ModelInvokeLLMRequest(
         user_id="test_user",
-        provider="tongyi",
+        provider="ey_tongyi",
         model_type=ModelType.LLM,
         model=model_name,
         credentials={
