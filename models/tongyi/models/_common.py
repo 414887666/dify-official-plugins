@@ -1,5 +1,7 @@
+import os
 from typing import Mapping
 
+import dashscope
 from dashscope.common.error import (
     AuthenticationError,
     InvalidParameter,
@@ -71,6 +73,16 @@ def get_compatible_api_key(credentials: Mapping[str, str]) -> str:
 
 def get_http_base_address(credentials: Mapping[str, str]) -> str:
     return get_dashscope_base_address(credentials)
+
+
+def configure_dashscope_http_base_url(credentials: Mapping[str, str]) -> str:
+    base_address = _normalize_http_url(
+        credentials.get("dashscope_endpoint_url"),
+        "dashscope_endpoint_url",
+    )
+    os.environ["DASHSCOPE_HTTP_BASE_URL"] = base_address
+    dashscope.base_http_api_url = base_address
+    return base_address
 
 
 def get_ws_base_address(credentials: Mapping[str, str]) -> str:

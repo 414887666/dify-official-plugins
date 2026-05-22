@@ -5,7 +5,16 @@ import yaml
 from typing import Optional
 import dashscope
 import numpy as np
-from dify_plugin.entities.model import EmbeddingInputType, PriceType
+from dify_plugin.entities import I18nObject
+from dify_plugin.entities.model import (
+    AIModelEntity,
+    EmbeddingInputType,
+    FetchFrom,
+    ModelFeature,
+    ModelPropertyKey,
+    ModelType,
+    PriceType,
+)
 from dify_plugin.entities.model.text_embedding import EmbeddingUsage, MultiModalContent, MultiModalContentType, MultiModalEmbeddingResult, TextEmbeddingResult
 from dify_plugin.errors.model import CredentialsValidateFailedError
 from dify_plugin.interfaces.model.text_embedding_model import TextEmbeddingModel
@@ -137,7 +146,7 @@ class TongyiTextEmbeddingModel(_CommonTongyi, TextEmbeddingModel):
         def call_embedding_api(text):
 
             try:
-                if model in ["multimodal-embedding-v1"]:
+                if model in ["multimodal-embedding-v1", "qwen3-vl-embedding"]:
                     return dashscope.MultiModalEmbedding.call(
                         api_key=credentials_kwargs["dashscope_api_key"],
                         model=model,
@@ -216,6 +225,35 @@ class TongyiTextEmbeddingModel(_CommonTongyi, TextEmbeddingModel):
                 pass
             vision_models[model] = False
         return vision_models[model]
+
+    def get_customizable_model_schema(
+        self, model: str, credentials: dict
+    ) -> Optional[AIModelEntity]:
+        """
+        Get customizable text embedding model schema.
+
+        :param model: model name
+        :param credentials: model credentials
+        :return: AIModelEntity or None
+        """
+        features = []
+        if credentials.get("vision_support") == "support" or model in [
+            "multimodal-embedding-v1",
+            "qwen3-vl-embedding",
+        ]:
+            features.append(ModelFeature.VISION)
+
+        return AIModelEntity(
+            model=model,
+            label=I18nObject(en_US=model, zh_Hans=model),
+            model_type=ModelType.TEXT_EMBEDDING,
+            features=features,
+            fetch_from=FetchFrom.CUSTOMIZABLE_MODEL,
+            model_properties={
+                ModelPropertyKey.CONTEXT_SIZE: int(credentials.get("context_size") or 4096),
+            },
+            parameter_rules=[],
+        )
 
     def _calc_response_usage(self, model: str, credentials: dict, tokens: int) -> EmbeddingUsage:
         """

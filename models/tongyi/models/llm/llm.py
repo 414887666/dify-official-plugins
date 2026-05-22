@@ -2,6 +2,7 @@ import base64
 import logging
 import json
 import os
+from re import DEBUG
 import tempfile
 import uuid
 from collections.abc import Generator
@@ -63,9 +64,9 @@ from dify_plugin.errors.model import (
 from dify_plugin.interfaces.model.large_language_model import LargeLanguageModel
 from openai import OpenAI
 from models._common import (
+    configure_dashscope_http_base_url,
     get_compatible_api_key,
     get_compatible_base_url,
-    get_dashscope_base_address,
 )
 from ..constant import BURY_POINT_HEADER
 
@@ -291,7 +292,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         if common_force_condition or model.startswith(("qwq-", "qvq-")):
             incremental_output = True
 
-        base_address = get_dashscope_base_address(credentials)
+        base_address = configure_dashscope_http_base_url(credentials)
 
         # The parameter `enable_omni_output_audio_url` must be set to true when using the Omni model in non-streaming mode.
         if model.startswith("qwen3-omni-") and not stream:
@@ -917,19 +918,80 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
         :param credentials: model credentials
         :return: AIModelEntity or None
         """
-        return AIModelEntity(
-            model=model,
-            label=I18nObject(en_US=model, zh_Hans=model),
-            model_type=ModelType.LLM,
-            features=(
+        features = []
+        if credentials.get("vision_support") == "support":
+            features.append(ModelFeature.VISION)
+        if credentials.get("function_calling_type") in {"function_call", "tool_call"}:
+            features.extend(
                 [
                     ModelFeature.TOOL_CALL,
                     ModelFeature.MULTI_TOOL_CALL,
                     ModelFeature.STREAM_TOOL_CALL,
                 ]
-                if credentials.get("function_calling_type") == "tool_call"
-                else []
+            )
+        if credentials.get("thinking_mode_support") == "supported":
+            features.append(ModelFeature.AGENT_THOUGHT)
+
+        parameter_rules = [
+            ParameterRule(
+                name="temperature",
+                use_template="temperature",
+                label=I18nObject(en_US="Temperature", zh_Hans="温度"),
+                type=ParameterType.FLOAT,
             ),
+            ParameterRule(
+                name="max_tokens",
+                use_template="max_tokens",
+                default=512,
+                min=1,
+                max=int(credentials.get("max_tokens", 1024)),
+                label=I18nObject(en_US="Max Tokens", zh_Hans="最大标记"),
+                type=ParameterType.INT,
+            ),
+            ParameterRule(
+                name="top_p",
+                use_template="top_p",
+                label=I18nObject(en_US="Top P", zh_Hans="Top P"),
+                type=ParameterType.FLOAT,
+            ),
+            ParameterRule(
+                name="top_k",
+                use_template="top_k",
+                label=I18nObject(en_US="Top K", zh_Hans="Top K"),
+                type=ParameterType.FLOAT,
+            ),
+            ParameterRule(
+                name="frequency_penalty",
+                use_template="frequency_penalty",
+                label=I18nObject(en_US="Frequency Penalty", zh_Hans="重复惩罚"),
+                type=ParameterType.FLOAT,
+            ),
+        ]
+        if credentials.get("thinking_mode_support") == "supported":
+            parameter_rules.extend(
+                [
+                    ParameterRule(
+                        name="enable_thinking",
+                        type=ParameterType.BOOLEAN,
+                        default=False,
+                        label=I18nObject(en_US="Thinking Mode", zh_Hans="思考模式"),
+                    ),
+                    ParameterRule(
+                        name="thinking_budget",
+                        type=ParameterType.INT,
+                        default=2048,
+                        min=1,
+                        max=81920,
+                        label=I18nObject(en_US="Thinking Budget", zh_Hans="思考长度限制"),
+                    ),
+                ]
+            )
+
+        return AIModelEntity(
+            model=model,
+            label=I18nObject(en_US=model, zh_Hans=model),
+            model_type=ModelType.LLM,
+            features=features,
             fetch_from=FetchFrom.CUSTOMIZABLE_MODEL,
             model_properties={
                 ModelPropertyKey.CONTEXT_SIZE: int(
@@ -937,41 +999,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 ),
                 ModelPropertyKey.MODE: LLMMode.CHAT.value,
             },
-            parameter_rules=[
-                ParameterRule(
-                    name="temperature",
-                    use_template="temperature",
-                    label=I18nObject(en_US="Temperature", zh_Hans="温度"),
-                    type=ParameterType.FLOAT,
-                ),
-                ParameterRule(
-                    name="max_tokens",
-                    use_template="max_tokens",
-                    default=512,
-                    min=1,
-                    max=int(credentials.get("max_tokens", 1024)),
-                    label=I18nObject(en_US="Max Tokens", zh_Hans="最大标记"),
-                    type=ParameterType.INT,
-                ),
-                ParameterRule(
-                    name="top_p",
-                    use_template="top_p",
-                    label=I18nObject(en_US="Top P", zh_Hans="Top P"),
-                    type=ParameterType.FLOAT,
-                ),
-                ParameterRule(
-                    name="top_k",
-                    use_template="top_k",
-                    label=I18nObject(en_US="Top K", zh_Hans="Top K"),
-                    type=ParameterType.FLOAT,
-                ),
-                ParameterRule(
-                    name="frequency_penalty",
-                    use_template="frequency_penalty",
-                    label=I18nObject(en_US="Frequency Penalty", zh_Hans="重复惩罚"),
-                    type=ParameterType.FLOAT,
-                ),
-            ],
+            parameter_rules=parameter_rules,
         )
 
     def _get_market_bury_point_header(self, messages: list[dict], extra_headers_str: str) -> dict:

@@ -39,29 +39,11 @@ model_credential_schema:
       en_US: DashScope Endpoint URL
       zh_Hans: DashScope Endpoint URL
     placeholder:
-      en_US: Enter your AI gateway DashScope endpoint URL
-      zh_Hans: 输入您的 AI 网关 DashScope endpoint URL
+      en_US: Enter your Dashscope Endpoint URL, address should end with /api/v1.
+      zh_Hans: 请输入 AI 网关的 DashScope Endpoint URL，地址应截止到 /api/v1，不需要填写具体模型服务路径。
     required: true
     type: text-input
     variable: dashscope_endpoint_url
-  - label:
-      en_US: Compatible API Key
-      zh_Hans: Compatible API Key
-    placeholder:
-      en_US: Optional. Defaults to API Key when empty
-      zh_Hans: 可选。留空时默认使用 API Key
-    required: false
-    type: secret-input
-    variable: compatible_api_key
-  - label:
-      en_US: Compatible Endpoint URL
-      zh_Hans: Compatible Endpoint URL
-    placeholder:
-      en_US: Optional. Defaults to DashScope Endpoint URL when empty
-      zh_Hans: 可选。留空时默认使用 DashScope Endpoint URL
-    required: false
-    type: text-input
-    variable: compatible_endpoint_url
   - default: '4096'
     label:
       en_US: Model context size
@@ -139,45 +121,11 @@ provider_credential_schema:
       en_US: DashScope Endpoint URL
       zh_Hans: DashScope Endpoint URL
     placeholder:
-      en_US: Enter your AI gateway DashScope endpoint URL
-      zh_Hans: 输入您的 AI 网关 DashScope endpoint URL
+      en_US: Enter your Dashscope Endpoint URL, address should end with /api/v1.
+      zh_Hans: 请输入 AI 网关的 DashScope Endpoint URL，地址应截止到 /api/v1，不需要填写具体模型服务路径。
     required: true
     type: text-input
     variable: dashscope_endpoint_url
-  - label:
-      en_US: Compatible API Key
-      zh_Hans: Compatible API Key
-    placeholder:
-      en_US: Optional. Defaults to API Key when empty
-      zh_Hans: 可选，留空时默认使用 API Key
-    required: false
-    type: secret-input
-    variable: compatible_api_key
-  - label:
-      en_US: Compatible Endpoint URL
-      zh_Hans: Compatible Endpoint URL
-    placeholder:
-      en_US: Optional. Defaults to DashScope Endpoint URL when empty
-      zh_Hans: 可选，留空时默认使用 DashScope Endpoint URL
-    required: false
-    type: text-input
-    variable: compatible_endpoint_url
-  - label:
-      en_US: Use International Endpoint for Speech-to-Text
-      zh_Hans: Speech-to-Text 使用国际端点
-    type: radio
-    required: false
-    default: "false"
-    variable: use_international_endpoint
-    options:
-      - label:
-          en_US: "True"
-          zh_Hans: "是"
-        value: "true"
-      - label:
-          en_US: "False"
-          zh_Hans: "否"
-        value: "false"
 supported_model_types:
   - llm
   - text-embedding

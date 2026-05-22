@@ -8,6 +8,8 @@ from dashscope.common.error import (
     UnsupportedHTTPMethod,
     UnsupportedModel,
 )
+from dify_plugin.entities import I18nObject
+from dify_plugin.entities.model import AIModelEntity, FetchFrom, ModelPropertyKey, ModelType
 from dify_plugin.entities.model.rerank import RerankDocument, RerankResult
 from dify_plugin.errors.model import (
     CredentialsValidateFailedError,
@@ -98,6 +100,27 @@ class GTERerankModel(RerankModel):
         except Exception as ex:
             print(ex)
             raise CredentialsValidateFailedError(str(ex))
+
+    def get_customizable_model_schema(
+        self, model: str, credentials: dict
+    ) -> Optional[AIModelEntity]:
+        """
+        Get customizable rerank model schema.
+
+        :param model: model name
+        :param credentials: model credentials
+        :return: AIModelEntity or None
+        """
+        return AIModelEntity(
+            model=model,
+            label=I18nObject(en_US=model, zh_Hans=model),
+            model_type=ModelType.RERANK,
+            fetch_from=FetchFrom.CUSTOMIZABLE_MODEL,
+            model_properties={
+                ModelPropertyKey.CONTEXT_SIZE: int(credentials.get("context_size") or 4096),
+            },
+            parameter_rules=[],
+        )
 
     @property
     def _invoke_error_mapping(self) -> dict[type[InvokeError], list[type[Exception]]]:
