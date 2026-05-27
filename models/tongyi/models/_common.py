@@ -4,6 +4,7 @@ import os
 import socket
 from typing import Mapping
 from urllib.parse import urlparse
+import dashscope
 
 from dashscope.common.error import (
     AuthenticationError,
@@ -130,8 +131,9 @@ def _validate_network_location(
             f"{field_name} must use a trusted gateway host suffix such as aliyun.com, aliyuncs.com, or ey.net"
         )
 
-    for resolved_ip in _resolve_hostname_ips(normalized_host, field_name):
-        _raise_if_forbidden_ip(resolved_ip, field_name)
+    if not _is_trusted_endpoint_host(normalized_host):
+        for resolved_ip in _resolve_hostname_ips(normalized_host, field_name):
+            _raise_if_forbidden_ip(resolved_ip, field_name)
 
 
 def _normalize_url(
@@ -243,10 +245,13 @@ def get_http_base_address(credentials: Mapping[str, str]) -> str:
 
 
 def configure_dashscope_http_base_url(credentials: Mapping[str, str]) -> str:
-    return _normalize_http_url(
+    base_address = _normalize_http_url(
         credentials.get("dashscope_endpoint_url"),
         "dashscope_endpoint_url",
     )
+    os.environ["DASHSCOPE_HTTP_BASE_URL"] = base_address
+    dashscope.base_http_api_url = base_address
+    return base_address
 
 
 def get_ws_base_address(credentials: Mapping[str, str]) -> str:
