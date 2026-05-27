@@ -20,7 +20,7 @@ from dify_plugin.errors.model import CredentialsValidateFailedError
 from dify_plugin.interfaces.model.text_embedding_model import TextEmbeddingModel
 from models._common import _CommonTongyi, get_http_base_address
 from ..constant import BURY_POINT_HEADER
-
+import logging
 vision_models = dict()
 
 class TongyiTextEmbeddingModel(_CommonTongyi, TextEmbeddingModel):
@@ -172,7 +172,7 @@ class TongyiTextEmbeddingModel(_CommonTongyi, TextEmbeddingModel):
             # Handle rate limit error (429)
             # Check if response is an exception with rate limit info
             if hasattr(response, 'status_code') and response.status_code == 429:
-                print(f"Rate limit exceeded (429). Response: {response}")
+                logging.warning("Rate limit exceeded (429) for text embedding, retrying after 10s")
                 time.sleep(10)
                 # Retry once after sleeping
                 response = call_embedding_api(text)
@@ -384,7 +384,7 @@ class TongyiTextEmbeddingModel(_CommonTongyi, TextEmbeddingModel):
             # Handle rate limit error (429)
             # Check if response is an exception with rate limit info
             if hasattr(response, 'status_code') and response.status_code == 429:
-                print(f"Rate limit exceeded (429). Response: {response}")
+                logging.warning("Rate limit exceeded (429) for text embedding, retrying after 10s")
                 time.sleep(10)
                 # Retry once after sleeping
                 response = call_embedding_api(input)

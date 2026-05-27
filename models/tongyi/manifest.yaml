@@ -31,5 +31,5 @@ resource:
       text_embedding: true
       tts: true
 type: plugin
-version: 0.1.47
+version: 0.1.45
 created_at: "2024-12-10T16:13:50.29298939+08:00"

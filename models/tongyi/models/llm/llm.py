@@ -2,7 +2,6 @@ import base64
 import logging
 import json
 import os
-from re import DEBUG
 import tempfile
 import uuid
 from collections.abc import Generator
@@ -67,6 +66,8 @@ from models._common import (
     configure_dashscope_http_base_url,
     get_compatible_api_key,
     get_compatible_base_url,
+    normalize_external_file_url,
+    sanitize_extra_headers,
 )
 from ..constant import BURY_POINT_HEADER
 
@@ -236,7 +237,7 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
             "qwen3.5-flash", "qwen3.5-flash-2026-02-23",
             # GLM series (default: thinking ENABLED - must explicitly disable)
             "glm-5.1", "glm-5", "glm-4.7", "glm-4.6", "glm-4.5", "glm-4.5-air",
-            # DeepSeek V3 series (default: thinking disabled)
+            # DeepSeek series (default: thinking disabled)
             "deepseek-v3.2", "deepseek-v3.2-exp", "deepseek-v3.1",
         }
         if model in thinking_capable_models and "enable_thinking" not in model_parameters:
@@ -763,7 +764,15 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                     temp_file.write(file_content)
                 else:
                     try:
-                        response = requests.get(message_content.url, timeout=60)
+                        download_url = normalize_external_file_url(
+                            message_content.url,
+                            "document_url",
+                        )
+                        response = requests.get(
+                            download_url,
+                            timeout=60,
+                            allow_redirects=False,
+                        )
                         response.raise_for_status()
                         temp_file.write(response.content)
                     except Exception as ex:
@@ -1053,6 +1062,10 @@ class TongyiLargeLanguageModel(LargeLanguageModel):
                 # Replace non-breaking spaces and other special whitespace characters with regular spaces
                 cleaned_str = extra_headers_str.replace('\xa0', ' ').replace('\u3000', ' ')
                 res_bury_point_header = json.loads(cleaned_str)
+                if isinstance(res_bury_point_header, dict):
+                    res_bury_point_header = sanitize_extra_headers(res_bury_point_header)
+                else:
+                    raise ValueError("extra_headers must be a JSON object")
             except Exception:
                 res_bury_point_header = {}
 
